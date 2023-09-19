@@ -13,6 +13,7 @@ module Data.Algebra.Boolean(
   nor,
   any,
   all,
+  Opp(..),
   ) where
 import Data.Monoid (Any(..), All(..), Dual(..), Endo(..))
 import Data.Bits (Bits, complement, (.|.), (.&.))
@@ -144,6 +145,20 @@ instance Boolean (Dual Bool) where
   (Dual p) `xor` (Dual q) = Dual (p `xor` q)
   (Dual p) --> (Dual q)   = Dual (p --> q)
   (Dual p) <--> (Dual q)  = Dual (p <--> q)
+
+newtype Opp a = Opp { getOpp :: a }
+  deriving (Eq, Ord, Show)
+
+-- | Opposite boolean algebra: exchanges true and false, and `and` and
+-- `or`, etc
+instance Boolean a => Boolean (Opp a) where
+  true = Opp false
+  false = Opp true
+  not = Opp . not . getOpp
+  (&&) = (Opp .) . (||) `on` getOpp
+  (||) = (Opp .) . (&&) `on` getOpp
+  xor = (Opp .) . (<-->) `on` getOpp
+  (<-->) = (Opp .) . xor `on` getOpp
 
 -- | Pointwise boolean algebra.
 --
