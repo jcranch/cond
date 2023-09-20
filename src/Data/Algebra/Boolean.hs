@@ -1,9 +1,19 @@
-{-# LANGUAGE FlexibleInstances, GeneralizedNewtypeDeriving,
-             DeriveDataTypeable
+{-# LANGUAGE
+      FlexibleInstances,
+      GeneralizedNewtypeDeriving,
+      DeriveDataTypeable
   #-}
-module Data.Algebra.Boolean
-       ( Boolean(..), fromBool, Bitwise(..)
-       ) where
+module Data.Algebra.Boolean(
+  Boolean(..),
+  fromBool,
+  Bitwise(..),
+  and,
+  or,
+  nand,
+  nor,
+  any,
+  all,
+  ) where
 import Data.Monoid (Any(..), All(..), Dual(..), Endo(..))
 import Data.Bits (Bits, complement, (.|.), (.&.))
 import qualified Data.Bits as Bits
@@ -43,30 +53,6 @@ class Boolean b where
   -- |Logical biconditional. (infixr 1)
   (<-->) :: b -> b -> b
 
-  -- | The logical conjunction of several values.
-  and :: Foldable t => t b -> b
-
-  -- | The logical disjunction of several values.
-  or :: Foldable t => t b -> b
-
-  -- | The negated logical conjunction of several values.
-  --
-  -- @'nand' = 'not' . 'and'@
-  nand :: Foldable t => t b -> b
-  nand = not . and
-
-  -- | The negated logical disjunction of several values.
-  --
-  -- @'nor' = 'not' . 'or'@
-  nor :: Foldable t => t b -> b
-  nor = not . or
-
-  -- | The logical conjunction of the mapping of a function over several values.
-  all :: Foldable t => (a -> b) -> t a -> b
-
-  -- | The logical disjunction of the mapping of a function over several values.
-  any :: Foldable t => (a -> b) -> t a -> b
-
   {-# MINIMAL (false | true), (not | ((<-->), false)), ((||) | (&&)) #-}
 
   -- Default implementations
@@ -78,12 +64,37 @@ class Boolean b where
   x `xor` y = (x || y) && (not (x && y))
   x --> y   = not x || y
   x <--> y  = (x && y) || not (x || y)
-  and       = F.foldl' (&&) true
-  or        = F.foldl' (||) false
-  all p     = F.foldl' f true
-    where f a b = a && p b
-  any p     = F.foldl' f false
-    where f a b = a || p b
+
+
+-- | The logical conjunction of several values.
+and :: (Boolean b, Foldable t) => t b -> b
+and = F.foldl' (&&) true
+
+-- | The logical disjunction of several values.
+or :: (Boolean b, Foldable t) => t b -> b
+or = F.foldl' (||) false
+
+-- | The negated logical conjunction of several values.
+--
+-- @'nand' = 'not' . 'and'@
+nand :: (Boolean b, Foldable t) => t b -> b
+nand = not . and
+
+-- | The negated logical disjunction of several values.
+--
+-- @'nor' = 'not' . 'or'@
+nor :: (Boolean b, Foldable t) => t b -> b
+nor = not . or
+
+-- | The logical conjunction of the mapping of a function over several values.
+all :: (Boolean b, Foldable t) => (a -> b) -> t a -> b
+all p = F.foldl' f true
+  where f a b = a && p b
+
+-- | The logical disjunction of the mapping of a function over several values.
+any :: (Boolean b, Foldable t) => (a -> b) -> t a -> b
+any p     = F.foldl' f false
+  where f a b = a || p b
 
 
 -- |Injection from 'Bool' into a boolean algebra.
@@ -101,6 +112,7 @@ instance Boolean Bool where
   False --> _ = True
   (<-->) = (==)
 
+-- | Could be done via `deriving via` from GHC8.6.1 onwards
 instance Boolean Any where
   true                  = Any True
   false                 = Any False
@@ -111,6 +123,7 @@ instance Boolean Any where
   (Any p) --> (Any q)   = Any (p --> q)
   (Any p) <--> (Any q)  = Any (p <--> q)
 
+-- | Could be done via `deriving via` from GHC8.6.1 onwards
 instance Boolean All where
   true                  = All True
   false                 = All False
@@ -121,6 +134,7 @@ instance Boolean All where
   (All p) --> (All q)   = All (p --> q)
   (All p) <--> (All q)  = All (p <--> q)
 
+-- | Could be done via `deriving via` from GHC8.6.1 onwards
 instance Boolean (Dual Bool) where
   true                    = Dual True
   false                   = Dual False
@@ -143,6 +157,7 @@ instance Boolean b => Boolean (a -> b) where
   p --> q   = \a -> p a --> q a
   p <--> q  = \a -> p a <--> q a
 
+-- | Could be done via `deriving via` from GHC8.6.1 onwards
 instance Boolean a => Boolean (Endo a) where
   true                    = Endo (const true)
   false                   = Endo (const false)
