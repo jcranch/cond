@@ -1,13 +1,13 @@
 Cabal-Version: >= 1.10
 Name: cond
-Version: 0.4.2
+Version: 0.5.0
 Synopsis: Basic conditional and boolean operators with monadic variants.
 Category: Control, Logic, Monad
 License: BSD3
 License-File: LICENSE
 Author: Adam Curtis
-Maintainer: acurtis@spsu.edu
-Homepage: https://github.com/kallisti-dev/cond
+Maintainer: acurtis@spsu.edu, James Cranch <j.d.cranch@sheffield.ac.uk>
+Homepage: https://github.com/jcranch/cond
 Build-Type: Simple
 Description:
   This library provides:
@@ -25,9 +25,9 @@ Description:
   monad-loops package has a fairly complete collection of them already.
 
 tested-with:
-  GHC == 9.6.1
-  GHC == 9.4.4
-  GHC == 9.2.7
+  GHC == 9.6.3
+  GHC == 9.4.6
+  GHC == 9.2.8
   GHC == 9.0.2
   GHC == 8.10.7
   GHC == 8.8.4
@@ -48,7 +48,7 @@ Extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/kallisti-dev/cond.git
+  location: https://github.com/jcranch/cond.git
 
 library
   hs-source-dirs: src
