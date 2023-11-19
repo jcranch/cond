@@ -1,4 +1,5 @@
 {-# LANGUAGE
+      CPP,
       FlexibleInstances,
       GeneralizedNewtypeDeriving,
       DeriveDataTypeable
@@ -23,7 +24,12 @@ import Data.Monoid (Any(..), All(..), Dual(..), Endo(..))
 import Data.Bits (Bits, complement, (.|.), (.&.))
 import qualified Data.Bits as Bits
 import Data.Function (on)
-import Data.Semigroup (stimes, stimesIdempotentMonoid)
+#if MIN_VERSION_base(4,11,0)
+import Data.Semigroup (Semigroup(..), stimesIdempotentMonoid)
+#elif MIN_VERSION_base(4,9,0)
+#else
+import Data.Monoid (Monoid(..))
+#endif
 import Data.Typeable
 import Data.Data
 import Data.Ix
@@ -73,32 +79,32 @@ class Boolean b where
 
 
 -- | The logical conjunction of several values.
-and :: (Boolean b, Foldable t) => t b -> b
+and :: (Boolean b, F.Foldable t) => t b -> b
 and = F.foldl' (&&) true
 
 -- | The logical disjunction of several values.
-or :: (Boolean b, Foldable t) => t b -> b
+or :: (Boolean b, F.Foldable t) => t b -> b
 or = F.foldl' (||) false
 
 -- | The negated logical conjunction of several values.
 --
 -- @'nand' = 'not' . 'and'@
-nand :: (Boolean b, Foldable t) => t b -> b
+nand :: (Boolean b, F.Foldable t) => t b -> b
 nand = not . and
 
 -- | The negated logical disjunction of several values.
 --
 -- @'nor' = 'not' . 'or'@
-nor :: (Boolean b, Foldable t) => t b -> b
+nor :: (Boolean b, F.Foldable t) => t b -> b
 nor = not . or
 
 -- | The logical conjunction of the mapping of a function over several values.
-all :: (Boolean b, Foldable t) => (a -> b) -> t a -> b
+all :: (Boolean b, F.Foldable t) => (a -> b) -> t a -> b
 all p = F.foldl' f true
   where f a b = a && p b
 
 -- | The logical disjunction of the mapping of a function over several values.
-any :: (Boolean b, Foldable t) => (a -> b) -> t a -> b
+any :: (Boolean b, F.Foldable t) => (a -> b) -> t a -> b
 any p     = F.foldl' f false
   where f a b = a || p b
 
@@ -108,12 +114,18 @@ newtype AnyB b = AnyB {
   getAnyB :: b
 } deriving (Eq, Ord, Show)
 
+#if MIN_VERSION_base(4,11,0)
 instance Boolean b => Semigroup (AnyB b) where
   AnyB x <> AnyB y = AnyB (x || y)
   stimes = stimesIdempotentMonoid
 
 instance Boolean b => Monoid (AnyB b) where
   mempty = AnyB false
+#else
+instance Boolean b => Monoid (AnyB b) where
+  mappend (AnyB x) (AnyB y) = AnyB (x || y)
+  mempty = AnyB false
+#endif
 
 
 -- | A boolean algebra regarded as a monoid under conjunction
@@ -121,30 +133,43 @@ newtype AllB b = AllB {
   getAllB :: b
 } deriving (Eq, Ord, Show)
 
+#if MIN_VERSION_base(4,11,0)
 instance Boolean b => Semigroup (AllB b) where
   AllB x <> AllB y = AllB (x && y)
   stimes = stimesIdempotentMonoid
 
 instance Boolean b => Monoid (AllB b) where
   mempty = AllB true
+#else
+instance Boolean b => Monoid (AllB b) where
+  mappend (AllB x) (AllB y) = AllB (x && y)
+  mempty = AllB true
+#endif
 
 
+-- | `stimes` for a group of exponent 2
 stimesPeriod2 :: (Monoid a, Integral n) => n -> a -> a
-stimesPeriod2 n x = case n `mod` 2 of
-  1 -> x
-  _ -> mempty
+stimesPeriod2 n x
+  | even n    = x
+  | otherwise = mempty
 
 -- | A boolean algebra regarded as a monoid under exclusive or
 newtype XorB b = XorB {
   getXorB :: b
 } deriving (Eq, Ord, Show)
 
+#if MIN_VERSION_base(4,11,0)
 instance Boolean b => Semigroup (XorB b) where
   XorB x <> XorB y = XorB (x `xor` y)
   stimes = stimesPeriod2
 
 instance Boolean b => Monoid (XorB b) where
   mempty = XorB false
+#else
+instance Boolean b => Monoid (XorB b) where
+  mappend (XorB x) (XorB y) = XorB (x `xor` y)
+  mempty = XorB false
+#endif
 
 
 -- | A boolean algebra regarded as a monoid under equivalence
@@ -152,12 +177,18 @@ newtype EquivB b = EquivB {
   getEquivB :: b
 }  deriving (Eq, Ord, Show)
 
+#if MIN_VERSION_base(4,11,0)
 instance Boolean b => Semigroup (EquivB b) where
   EquivB x <> EquivB y = EquivB (x <--> y)
   stimes = stimesPeriod2
 
 instance Boolean b => Monoid (EquivB b) where
   mempty = EquivB true
+#else
+instance Boolean b => Monoid (EquivB b) where
+  mappend (EquivB x) (EquivB y) = EquivB (x <--> y)
+  mempty = EquivB true
+#endif
 
 
 -- |Injection from 'Bool' into a boolean algebra.
