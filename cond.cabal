@@ -1,6 +1,6 @@
 Cabal-Version: >= 1.10
 Name: cond
-Version: 0.5.0
+Version: 0.5.1
 Synopsis: Basic conditional and boolean operators with monadic variants.
 Category: Control, Logic, Monad
 License: BSD3
