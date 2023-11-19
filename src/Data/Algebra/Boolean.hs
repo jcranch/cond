@@ -150,8 +150,8 @@ instance Boolean b => Monoid (AllB b) where
 -- | `stimes` for a group of exponent 2
 stimesPeriod2 :: (Monoid a, Integral n) => n -> a -> a
 stimesPeriod2 n x
-  | even n    = x
-  | otherwise = mempty
+  | even n    = mempty
+  | otherwise = x
 
 -- | A boolean algebra regarded as a monoid under exclusive or
 newtype XorB b = XorB {
