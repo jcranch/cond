@@ -1,6 +1,6 @@
 Cabal-Version: >= 1.10
 Name: cond
-Version: 0.5.0
+Version: 0.5.1
 Synopsis: Basic conditional and boolean operators with monadic variants.
 Category: Control, Logic, Monad
 License: BSD3
@@ -25,6 +25,8 @@ Description:
   monad-loops package has a fairly complete collection of them already.
 
 tested-with:
+  GHC == 9.10.1
+  GHC == 9.8.2
   GHC == 9.6.3
   GHC == 9.4.6
   GHC == 9.2.8
