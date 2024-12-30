@@ -1,1 +1,2 @@
 branches: master ci-*
+distribution: jammy
